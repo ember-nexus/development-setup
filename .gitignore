@@ -4,5 +4,11 @@ api/
 frontend/
 !frontend/.gitignore
 
+other/
+!other/.gitignore
+
+python/
+!python/.gitignore
+
 .idea/
 !.idea/vcs.xml
