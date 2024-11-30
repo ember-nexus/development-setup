@@ -20,20 +20,12 @@ env:
     - name: "app-web"
       github: ember-nexus/app-web
       location: "frontend/app-web"
-  #  repositories-old:
-  #    api:
-  #      - ember-nexus/api
-  #      - ember-nexus/reference-dataset
-  #
-  #    frontend:
-  #      - ember-nexus/web-sdk
-  #      - ember-nexus/uix
-  #      - ember-nexus/app-plugin-experimental
-  #      - ember-nexus/app-web
-  #
-  #    other:
-  #      - ember-nexus/governance
-  #      - ember-nexus/python-sdk
+    - name: "governance"
+      github: ember-nexus/governance
+      location: "other/governance"
+    - name: "python-sdk"
+      github: ember-nexus/python-sdk
+      location: "python/python-sdk"
 
 tasks:
 
@@ -48,6 +40,29 @@ tasks:
       - task: check-docker-is-installed
       - task: check-docker-compose-is-installed
       - task: clone-repositories
+
+  repo-checkout-pull-main:
+    desc: Checks out the main branch of every repository, given it does not have uncommited changes.
+    silent: true
+    cmds:
+      - for: { var: repositories }
+        cmd: |
+          (
+            if [ ! -d "{{.ITEM.location}}" ]; then
+              echo "Repository {{.ITEM.github}} is not yet cloned to location {{.ITEM.location}}."
+              exit 0
+            fi
+            cd "{{.ITEM.location}}"
+            if [[ `git status --porcelain` ]]; then
+              echo "Skipped repository {{.ITEM.github}} due to uncommited changes."
+            fi
+            echo "Repository {{.ITEM.github}} at location {{.ITEM.location}}:"
+            if [[ ! `git rev-parse --abbrev-ref HEAD` == "main" ]]; then
+              git checkout main
+            fi
+            git pull
+          )
+          echo ""
 
   repo-ls:
     desc: List repositories and their git version.
