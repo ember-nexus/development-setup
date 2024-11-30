@@ -1,0 +1,48 @@
+version: '3'
+
+tasks:
+
+  default:
+    desc: Default help output.
+    cmds:
+      - task --list
+
+  setup:
+    desc: Check required dependencies and clones all Ember Nexus repositories.
+    cmds:
+      - task: check-docker-is-installed
+      - task: check-docker-compose-is-installed
+
+
+  check-docker-is-installed:
+    internal: true
+    silent: true
+    cmd: |
+      if [ -x "$(command -v docker)" ]; then
+        echo "[OK] docker is installed"
+      else
+        echo "[ERROR] unable to find docker, please install it."
+        echo "        see tutorial here: https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-22-04"
+        exit 1
+      fi
+
+  check-docker-compose-is-installed:
+    internal: true
+    silent: true
+    cmd: |
+      if $(docker compose &>/dev/null) && [ $? -eq 0 ]; then
+        echo "[OK] docker compose is installed"
+      else
+        echo "[ERROR] unable to find docker compose, please install it."
+        echo "        see tutorial here: https://docs.docker.com/compose/install/linux/"
+        exit 1
+      fi
+
+  clone-repositories:
+    internal: true
+    silent: true
+    cmd: |
+      
+  
+  
+  
