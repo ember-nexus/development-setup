@@ -11,6 +11,15 @@ env:
     - name: "web-sdk"
       github: ember-nexus/web-sdk
       location: "frontend/web-sdk"
+    - name: "uix"
+      github: ember-nexus/uix
+      location: "frontend/uix"
+    - name: "app-plugin-experimental"
+      github: ember-nexus/app-plugin-experimental
+      location: "frontend/app-plugin-experimental"
+    - name: "app-web"
+      github: ember-nexus/app-web
+      location: "frontend/app-web"
   #  repositories-old:
   #    api:
   #      - ember-nexus/api
@@ -56,7 +65,7 @@ tasks:
         cmd: |
           (
             if [ ! -d "{{.ITEM.location}}" ]; then
-              echo "repository {{.ITEM.github}} is not checked out at location {{.ITEM.location}}"
+              echo "{\"location\": \"-\", \"github\": \"{{.ITEM.github}}\", \"branch\": \"-\", \"unsavedChanges\": \"-\", \"branchUpToDate\": \"-\"}"
               exit 0
             fi
             cd "{{.ITEM.location}}"
@@ -103,6 +112,10 @@ tasks:
     cmds:
       - for: { var: repositories }
         cmd: |
+          if [ -d "{{.ITEM.location}}" ]; then
+            echo "Repository {{.ITEM.name}} at location {{.ITEM.location}} is already installed."
+            exit 0
+          fi
           mkdir -p "./{{.ITEM.location}}"
           echo "[WIP] cloning {{.ITEM.name}}..."
           git clone "git@github.com:{{.ITEM.github}}.git" "./{{.ITEM.location}}"
