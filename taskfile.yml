@@ -1,5 +1,31 @@
 version: '3'
 
+env:
+  repositories:
+    - name: "api"
+      github: ember-nexus/api
+      location: "api/api"
+    - name: "reference-dataset"
+      github: ember-nexus/reference-dataset
+      location: "api/reference-dataset"
+    - name: "web-sdk"
+      github: ember-nexus/web-sdk
+      location: "frontend/web-sdk"
+  #  repositories-old:
+  #    api:
+  #      - ember-nexus/api
+  #      - ember-nexus/reference-dataset
+  #
+  #    frontend:
+  #      - ember-nexus/web-sdk
+  #      - ember-nexus/uix
+  #      - ember-nexus/app-plugin-experimental
+  #      - ember-nexus/app-web
+  #
+  #    other:
+  #      - ember-nexus/governance
+  #      - ember-nexus/python-sdk
+
 tasks:
 
   default:
@@ -12,6 +38,7 @@ tasks:
     cmds:
       - task: check-docker-is-installed
       - task: check-docker-compose-is-installed
+      - task: clone-repositories
 
 
   check-docker-is-installed:
@@ -41,8 +68,9 @@ tasks:
   clone-repositories:
     internal: true
     silent: true
-    cmd: |
-      
-  
-  
-  
+    cmds:
+      - for: { var: repositories }
+        cmd: |
+          mkdir -p "./{{.ITEM.location}}"
+          echo "[WIP] cloning {{.ITEM.name}}..."
+          git clone "git@github.com:{{.ITEM.github}}.git" "./{{.ITEM.location}}"
