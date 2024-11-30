@@ -40,6 +40,38 @@ tasks:
       - task: check-docker-compose-is-installed
       - task: clone-repositories
 
+  repo-ls:
+    desc: List repositories and their git version.
+    silent: true
+    cmd: |
+      title='"location","GitHub repository","branch","unsaved changes?","branch up to date?"'
+      content=$(task repo-ls-raw | jq --slurp -r '.[] | [.location, .github, .branch, .unsavedChanges, .branchUpToDate] | @csv')
+      csv=$(echo "$title"; echo "$content")
+      echo "$csv" | duckdb -column -c "SELECT * FROM read_csv('/dev/stdin', all_varchar=true)"
+
+  repo-ls-raw:
+    silent: true
+    cmds:
+      - for: { var: repositories }
+        cmd: |
+          (
+            if [ ! -d "{{.ITEM.location}}" ]; then
+              echo "repository {{.ITEM.github}} is not checked out at location {{.ITEM.location}}"
+              exit 0
+            fi
+            cd "{{.ITEM.location}}"
+            branch=$(git rev-parse --abbrev-ref HEAD)
+            unsavedChanges="no"
+            if [[ `git status --porcelain` ]]; then
+              unsavedChanges="yes"
+            fi
+            git fetch &> /dev/null
+            branchUpToDate="no"
+            if [[ `git status -uno` == *"Your branch is up to date with"* ]]; then
+              branchUpToDate="yes"
+            fi
+            echo "{\"location\": \"{{.ITEM.location}}\", \"github\": \"{{.ITEM.github}}\", \"branch\": \"${branch}\", \"unsavedChanges\": \"${unsavedChanges}\", \"branchUpToDate\": \"${branchUpToDate}\"}"
+          )
 
   check-docker-is-installed:
     internal: true
