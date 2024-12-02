@@ -6,62 +6,84 @@ services:
       context: ./api/api
       dockerfile: ./docker/Dockerfile
       target: development
-    ports:
-      - "80:80"
     volumes:
       - ./api/api:/var/www/html
       - ./volumes/well-known-security.txt:/well-known-security.txt
-#    deploy:
-#      resources:
-#        reservations:
-#          cpus: '4.00'
-    networks:
-      - internal
-      - ember-nexus-api
+    expose:
+      - 80
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.ember-nexus-api-api.loadbalancer.server.port=80'
+      - 'traefik.http.routers.ember-nexus-api-api.rule=Host(`api.ember-nexus.localhost`)'
+      - 'traefik.http.routers.ember-nexus-api-api.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-api-api.tls=true'
+      - 'traefik.http.routers.ember-nexus-api-api.tls.certresolver=step-ca'
 
   ember-nexus-api-neo4j:
     container_name: ember-nexus-api-neo4j
     image: neo4j:5.25
-    ports:
-      - "7474:7474"
-      - "7687:7687"
     environment:
       - NEO4J_AUTH=neo4j/password
-    networks:
-      - internal
+    expose:
+      - 7474
+      - 7687
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.ember-nexus-api-neo4j.loadbalancer.server.port=7474'
+      - 'traefik.http.routers.ember-nexus-api-neo4j.rule=Host(`neo4j.ember-nexus.localhost`)'
+      - 'traefik.http.routers.ember-nexus-api-neo4j.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-api-neo4j.tls=true'
+      - 'traefik.http.routers.ember-nexus-api-neo4j.tls.certresolver=step-ca'
+      - 'traefik.http.routers.ember-nexus-api-neo4j.middlewares=cors'
+      - 'traefik.tcp.services.ember-nexus-api-neo4j-bolt.loadbalancer.server.port=7687'
+      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.rule=HostSNI(`neo4j.ember-nexus.localhost`)'
+      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.entrypoints=bolt'
+      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.service=ember-nexus-api-neo4j-bolt'
+      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.tls=true'
+      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.tls.certresolver=step-ca'
 
   ember-nexus-api-mongodb:
     container_name: ember-nexus-api-mongodb
     image: mongo:8
-    ports:
-      - "27017:27017"
+    expose:
+      - 27017
     environment:
       - MONGO_INITDB_ROOT_USERNAME=mongodb
       - MONGO_INITDB_ROOT_PASSWORD=password
-    networks:
-      - internal
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.tcp.services.ember-nexus-api-mongodb.loadbalancer.server.port=27017'
+      - 'traefik.tcp.routers.ember-nexus-api-mongodb.rule=HostSNI(`*`)'
+      - 'traefik.tcp.routers.ember-nexus-api-mongodb.entrypoints=mongodb'
+      - 'traefik.tcp.routers.ember-nexus-api-mongodb.service=ember-nexus-api-mongodb'
+      - 'traefik.tcp.routers.ember-nexus-api-mongodb.tls=true'
 
   ember-nexus-api-elasticsearch:
     container_name: ember-nexus-api-elasticsearch
     image: elasticsearch:8.16.1
-    ports:
-      - "9200:9200"
+    expose:
+      - 9200
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - xpack.security.enrollment.enabled=true
-    networks:
-      - internal
 
   ember-nexus-api-kibana:
     container_name: ember-nexus-api-kibana
     image: kibana:8.16.1
-    ports:
-      - "5601:5601"
+    expose:
+      - 5601
     depends_on:
       - ember-nexus-api-elasticsearch
-    networks:
-      - internal
+    environment:
+      SERVER_NAME: elastic.ember-nexus.localhost
+      ELASTICSEARCH_HOSTS: '["http://ember-nexus-api-elasticsearch:9200"]'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.ember-nexus-api-kibana.loadbalancer.server.port=5601'
+      - 'traefik.http.routers.ember-nexus-api-kibana.rule=Host(`elastic.ember-nexus.localhost`)'
+      - 'traefik.http.routers.ember-nexus-api-kibana.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-api-kibana.tls=true'
 
   ember-nexus-api-redis:
     container_name: ember-nexus-api-redis
@@ -69,16 +91,12 @@ services:
     ports:
       - "6379:6379"
     command: redis-server --save 20 1 --loglevel warning --requirepass redis-password
-    networks:
-      - internal
 
   ember-nexus-api-redisinsight:
     container_name: ember-nexus-api-redisinsight
     image: redislabs/redisinsight:latest
     ports:
       - '8001:8001'
-    networks:
-      - internal
 
   ember-nexus-api-rabbitmq:
     container_name: ember-nexus-api-rabbitmq
@@ -89,8 +107,6 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=user
       - RABBITMQ_DEFAULT_PASS=password
-    networks:
-      - internal
 
 
   ember-nexus-api-minio:
@@ -105,16 +121,100 @@ services:
       - MINIO_ROOT_USER=ROOTNAME
       - MINIO_ROOT_PASSWORD=CHANGEME123
     command: server /data --console-address ":9001"
-    networks:
-      - internal
 
 # frontend stuff
 
 # logging stuff
 
+  ember-nexus-logging-dozzle:
+    image: amir20/dozzle:latest
+    container_name: ember-nexus-logging-dozzle
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+#    ports:
+#      - 8080:8080
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.ember-nexus-logging-dozzle.loadbalancer.server.port=8080'
+      - 'traefik.http.routers.ember-nexus-logging-dozzle.rule=Host(`logs.ember-nexus.localhost`)'
+      - 'traefik.http.routers.ember-nexus-logging-dozzle.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-logging-dozzle.tls=true'
+      - 'traefik.http.routers.ember-nexus-logging-dozzle.tls.certresolver=step-ca'
 
-networks:
-  internal:
-    name: internal
-  ember-nexus-api:
-    name: ember-nexus-api
+# proxy
+
+  ember-nexus-proxy-traefik:
+    image: traefik:v3.2
+    container_name: ember-nexus-proxy-traefik
+    depends_on:
+      ember-nexus-proxy-step-ca:
+        condition: service_healthy
+#    command:
+#      - --entrypoints.web.address=:80
+#      - --entrypoints.websecure.address=:443
+#      - --entrypoints.bolt.address=:7687
+#      - --entrypoints.mongodb.address=:27017
+#      - --providers.docker
+#      - --providers.docker.exposedByDefault=false
+##      - --providers.docker.network=traefik
+#      - --api
+##      - --certificatesresolvers.le.acme.caserver=$ACME_SERVER
+##      - --certificatesresolvers.le.acme.email=$ACME_EMAIL
+##      - --certificatesresolvers.le.acme.storage=/acme.json
+##      - --certificatesresolvers.le.acme.tlschallenge=true
+#
+#      - --certificatesresolvers.step-ca.acme.storage=acme.json
+#      - --certificatesresolvers.step-ca.acme.caserver=https://ember-nexus-proxy-step-ca:9000
+#      - --certificatesresolvers.step-ca.acme.email=ember-nexus@localhost
+#      - --certificatesresolvers.step-ca.acme.certificatesDuration=24
+#      - --certificatesresolvers.step-ca.acme.tlschallenge=true
+#      - --certificatesresolvers.step-ca.acme.caCertificates="/certs2/"
+    ports:
+      - '80:80'
+      - '443:443'
+      - '7687:7687'
+      - '27017:27017'
+    networks:
+      default:
+        aliases:
+          - api.ember-nexus.localhost
+          - neo4j.ember-nexus.localhost
+          - proxy.ember-nexus.localhost
+          - logs.ember-nexus.localhost
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - './volumes/acme.json:/acme.json'
+      - './volumes/step-ca:/step-ca:ro'
+      - './volumes/traefik.sh:/traefik.sh'
+    entrypoint: /traefik.sh
+    labels:
+      - 'traefik.enable=true'
+      # dashboard
+      - 'traefik.http.routers.ember-nexus-proxy-traefik.rule=Host(`proxy.ember-nexus.localhost`)'
+      - 'traefik.http.routers.ember-nexus-proxy-traefik.service=api@internal'
+      - 'traefik.http.routers.ember-nexus-proxy-traefik.tls=true'
+      - 'traefik.http.routers.ember-nexus-proxy-traefik.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-proxy-traefik.tls.certresolver=step-ca'
+
+      # global redirect to https
+      - 'traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)'
+      - 'traefik.http.routers.http-catchall.entrypoints=web'
+      - 'traefik.http.routers.http-catchall.middlewares=redirect-to-https'
+
+      # middleware redirect
+      - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
+
+      # middleware cors
+      - 'traefik.http.middlewares.cors.headers.customResponseHeaders.Access-Control-Allow-Origin=*'
+
+  ember-nexus-proxy-step-ca:
+    container_name: ember-nexus-proxy-step-ca
+    image: smallstep/step-ca
+    volumes:
+      - ./volumes/step-ca:/home/step
+    ports:
+      - 9500:9000
+    environment:
+      - DOCKER_STEPCA_INIT_NAME=EmberNexusLocalhost
+      - DOCKER_STEPCA_INIT_DNS_NAMES=localhost,ember-nexus-proxy-step-ca,$(hostname -f)
+      - DOCKER_STEPCA_INIT_ACME=true
