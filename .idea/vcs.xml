@@ -7,5 +7,7 @@
     <mapping directory="$PROJECT_DIR$/frontend/app-web" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/frontend/uix" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/frontend/web-sdk" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/other/governance" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/python/python-sdk" vcs="Git" />
   </component>
 </project>

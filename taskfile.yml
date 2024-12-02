@@ -34,6 +34,32 @@ tasks:
     cmds:
       - task --list
 
+
+  start:
+    desc: Start docker compose setup.
+    silent: true
+    cmd: |
+      docker compose up -d
+
+
+  cli-test:
+    desc: Cli test.
+    silent: true
+    cmd: |
+      cd api/api
+      cliTool=$(task cli-tool)
+      echo "$cliTool"
+      
+
+
+
+
+
+
+
+
+
+
   setup:
     desc: Check required dependencies and clones all Ember Nexus repositories.
     cmds:
@@ -68,12 +94,40 @@ tasks:
     desc: List repositories and their git version.
     silent: true
     cmd: |
-      title='"location","GitHub repository","branch","unsaved changes?","branch up to date?"'
-      content=$(task repo-ls-raw | jq --slurp -r '.[] | [.location, .github, .branch, .unsavedChanges, .branchUpToDate] | @csv')
+      title='"location","GitHub repository","branch","unsaved changes?"'
+      content=$(task repo-ls-raw | jq --slurp -r '.[] | [.location, .github, .branch, .unsavedChanges] | @csv')
       csv=$(echo "$title"; echo "$content")
       echo "$csv" | duckdb -column -c "SELECT * FROM read_csv('/dev/stdin', all_varchar=true)"
 
   repo-ls-raw:
+    silent: true
+    cmds:
+      - for: { var: repositories }
+        cmd: |
+          (
+            if [ ! -d "{{.ITEM.location}}" ]; then
+              echo "{\"location\": \"-\", \"github\": \"{{.ITEM.github}}\", \"branch\": \"-\", \"unsavedChanges\": \"-\"}"
+              exit 0
+            fi
+            cd "{{.ITEM.location}}"
+            branch=$(git rev-parse --abbrev-ref HEAD)
+            unsavedChanges="no"
+            if [[ `git status --porcelain` ]]; then
+              unsavedChanges="yes"
+            fi
+            echo "{\"location\": \"{{.ITEM.location}}\", \"github\": \"{{.ITEM.github}}\", \"branch\": \"${branch}\", \"unsavedChanges\": \"${unsavedChanges}\"}"
+          )
+
+  repo-updates:
+    desc: Show whether repositories have updates in their remote branches.
+    silent: true
+    cmd: |
+      title='"location","GitHub repository","branch","unsaved changes?","branch up to date?"'
+      content=$(task repo-updates-raw | jq --slurp -r '.[] | [.location, .github, .branch, .unsavedChanges, .branchUpToDate] | @csv')
+      csv=$(echo "$title"; echo "$content")
+      echo "$csv" | duckdb -column -c "SELECT * FROM read_csv('/dev/stdin', all_varchar=true)"
+
+  repo-updates-raw:
     silent: true
     cmds:
       - for: { var: repositories }

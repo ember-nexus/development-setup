@@ -10,5 +10,8 @@ other/
 python/
 !python/.gitignore
 
+volumes/
+!volumes/.gitignore
+
 .idea/
 !.idea/vcs.xml

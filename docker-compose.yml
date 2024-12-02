@@ -1,0 +1,120 @@
+services:
+
+  ember-nexus-api-api:
+    container_name: ember-nexus-api-api
+    build:
+      context: ./api/api
+      dockerfile: ./docker/Dockerfile
+      target: development
+    ports:
+      - "80:80"
+    volumes:
+      - ./api/api:/var/www/html
+      - ./volumes/well-known-security.txt:/well-known-security.txt
+#    deploy:
+#      resources:
+#        reservations:
+#          cpus: '4.00'
+    networks:
+      - internal
+      - ember-nexus-api
+
+  ember-nexus-api-neo4j:
+    container_name: ember-nexus-api-neo4j
+    image: neo4j:5.25
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    networks:
+      - internal
+
+  ember-nexus-api-mongodb:
+    container_name: ember-nexus-api-mongodb
+    image: mongo:8
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongodb
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    networks:
+      - internal
+
+  ember-nexus-api-elasticsearch:
+    container_name: ember-nexus-api-elasticsearch
+    image: elasticsearch:8.16.1
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=true
+    networks:
+      - internal
+
+  ember-nexus-api-kibana:
+    container_name: ember-nexus-api-kibana
+    image: kibana:8.16.1
+    ports:
+      - "5601:5601"
+    depends_on:
+      - ember-nexus-api-elasticsearch
+    networks:
+      - internal
+
+  ember-nexus-api-redis:
+    container_name: ember-nexus-api-redis
+    image: redis:8.0-M02
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning --requirepass redis-password
+    networks:
+      - internal
+
+  ember-nexus-api-redisinsight:
+    container_name: ember-nexus-api-redisinsight
+    image: redislabs/redisinsight:latest
+    ports:
+      - '8001:8001'
+    networks:
+      - internal
+
+  ember-nexus-api-rabbitmq:
+    container_name: ember-nexus-api-rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    networks:
+      - internal
+
+
+  ember-nexus-api-minio:
+    container_name: ember-nexus-api-minio
+    image: quay.io/minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./volumes/minio:/data
+    environment:
+      - MINIO_ROOT_USER=ROOTNAME
+      - MINIO_ROOT_PASSWORD=CHANGEME123
+    command: server /data --console-address ":9001"
+    networks:
+      - internal
+
+# frontend stuff
+
+# logging stuff
+
+
+networks:
+  internal:
+    name: internal
+  ember-nexus-api:
+    name: ember-nexus-api
