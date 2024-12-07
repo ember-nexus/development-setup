@@ -1,0 +1,81 @@
+{
+  "default": {
+    "nofollow": true,
+    "icon": "my-default-icon.png",
+    "newtab": true
+  },
+  "sites": [
+    {
+      "name": "Github EN",
+      "url" : "https://github.com/ember-nexus",
+      "description": "Ember Nexus organisation on GitHub",
+      "icon": "ember-nexus.png"
+    },
+    {
+      "name": "Github ENT",
+      "url" : "https://github.com/ember-nexus-technologies",
+      "description": "Ember Nexus Technologies on GitHub",
+      "icon": "ember-nexus-technologies.png"
+    },
+    {
+      "name": "Docker Hub",
+      "url" : "https://hub.docker.com/u/embernexus",
+      "icon": "docker.png"
+    },
+    {
+      "name": "NPM",
+      "url" : "https://www.npmjs.com/org/ember-nexus",
+      "icon": "npm.png"
+    },
+    {
+      "name": "Mirror",
+      "url" : "https://mirror.ember-nexus.dev"
+    },
+    {
+      "name": "Proxy",
+      "url" : "https://proxy.localhost",
+      "icon": "traefik.png",
+      "status": {
+        "allowed_status_codes": [200, 302],
+        "request_method": "GET",
+        "url": "https://proxy.localhost",
+        "verify_cert": false
+      }
+    },
+    {
+      "name": "Logs",
+      "url" : "https://logs.localhost",
+      "icon": "dozzle.png"
+    },
+    {
+      "name": "API",
+      "url" : "https://api.localhost",
+      "icon": "ember-nexus.png"
+    },
+    {
+      "name": "Kibana",
+      "url" : "https://kibana.localhost",
+      "icon": "kibana.png"
+    },
+    {
+      "name": "Redis Insight",
+      "url" : "https://redisinsight.localhost",
+      "icon": "redis.png"
+    },
+    {
+      "name": "RabbitMQ",
+      "url" : "https://rabbitmq.localhost",
+      "icon": "rabbit-mq.png"
+    },
+    {
+      "name": "Neo4j",
+      "url" : "https://neo4j.localhost",
+      "icon": "neo4j.png"
+    },
+    {
+      "name": "MinIO",
+      "url" : "https://minio.localhost",
+      "icon": "minio.png"
+    }
+  ]
+}
