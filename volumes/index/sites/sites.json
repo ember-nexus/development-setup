@@ -76,6 +76,26 @@
       "name": "MinIO",
       "url" : "https://minio.localhost",
       "icon": "minio.png"
+    },
+    {
+      "name": "API Docs",
+      "url" : "https://docs.api.localhost/",
+      "icon": "book-open-variant.png"
+    },
+    {
+      "name": "Web-SDK Docs",
+      "url" : "https://docs.web-sdk.localhost/",
+      "icon": "book-open-variant.png"
+    },
+    {
+      "name": "App Plugin Experimental Docs",
+      "url" : "https://docs.app-plugin-experimental.localhost/",
+      "icon": "book-open-variant.png"
+    },
+    {
+      "name": "UIX Docs",
+      "url" : "https://docs.uix.localhost/",
+      "icon": "book-open-variant.png"
     }
   ]
 }

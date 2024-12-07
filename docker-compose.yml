@@ -1,7 +1,9 @@
+name: ember-nexus-dev
+
 services:
 
-  ember-nexus-api-api:
-    container_name: ember-nexus-api-api
+  ember-nexus-api:
+    container_name: ember-nexus-api
     build:
       context: ./api/api
       dockerfile: ./docker/Dockerfile
@@ -20,6 +22,22 @@ services:
       - 'traefik.http.routers.ember-nexus-api-api.entrypoints=websecure'
       - 'traefik.http.routers.ember-nexus-api-api.tls=true'
       - 'traefik.http.routers.ember-nexus-api-api.tls.certresolver=step-ca'
+
+  ember-nexus-api-docs:
+    container_name: ember-nexus-api-docs
+    image: sujaykumarh/docsify:latest
+    expose:
+      - 3000
+    volumes:
+      - ./api/api/docs:/docs
+    command: serve
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.ember-nexus-api-docs.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.ember-nexus-api-docs.rule=Host(`docs.api.localhost`) || Host(`docs.api.${DOMAIN}`)'
+      - 'traefik.http.routers.ember-nexus-api-docs.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-api-docs.tls=true'
+      - 'traefik.http.routers.ember-nexus-api-docs.tls.certresolver=step-ca'
 
   ember-nexus-api-neo4j:
     container_name: ember-nexus-api-neo4j
@@ -63,6 +81,7 @@ services:
   ember-nexus-api-elasticsearch:
     container_name: ember-nexus-api-elasticsearch
     image: elasticsearch:8.16.1
+    mem_limit: 4gb
     expose:
       - 9200
     environment:
@@ -79,7 +98,7 @@ services:
       - ember-nexus-api-elasticsearch
     environment:
       SERVER_NAME: elastic.${DOMAIN}
-      ELASTICSEARCH_HOSTS: '["http://ember-nexus-api-elasticsearch:9200"]'
+      ELASTICSEARCH_HOSTS: '["http://api-elasticsearch:9200"]'
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.services.ember-nexus-api-kibana.loadbalancer.server.port=5601'
@@ -130,7 +149,7 @@ services:
 
   ember-nexus-api-minio:
     container_name: ember-nexus-api-minio
-    image: quay.io/minio/minio
+    image: quay.io/minio/minio:latest
 #    ports:
 #      - '9000:9000'
 #      - '9001:9001'
@@ -150,6 +169,55 @@ services:
 
 # frontend stuff
 
+
+  ember-nexus-frontend-web-sdk-docs:
+    container_name: ember-nexus-frontend-web-sdk-docs
+    image: sujaykumarh/docsify:latest
+    expose:
+      - 3000
+    volumes:
+      - ./frontend/web-sdk/docs:/docs
+    command: serve
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.ember-nexus-frontend-web-sdk-docs.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.ember-nexus-frontend-web-sdk-docs.rule=Host(`docs.web-sdk.localhost`) || Host(`docs.web-sdk.${DOMAIN}`)'
+      - 'traefik.http.routers.ember-nexus-frontend-web-sdk-docs.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-frontend-web-sdk-docs.tls=true'
+      - 'traefik.http.routers.ember-nexus-frontend-web-sdk-docs.tls.certresolver=step-ca'
+
+  ember-nexus-frontend-uix-docs:
+    container_name: ember-nexus-frontend-uix-docs
+    image: sujaykumarh/docsify:latest
+    expose:
+      - 3000
+    volumes:
+      - ./frontend/uix/docs:/docs
+    command: serve
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.ember-nexus-frontend-uix-docs.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.ember-nexus-frontend-uix-docs.rule=Host(`docs.uix.localhost`) || Host(`docs.uix.${DOMAIN}`)'
+      - 'traefik.http.routers.ember-nexus-frontend-uix-docs.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-frontend-uix-docs.tls=true'
+      - 'traefik.http.routers.ember-nexus-frontend-uix-docs.tls.certresolver=step-ca'
+
+  ember-nexus-frontend-app-plugin-experimental-docs:
+    container_name: ember-nexus-frontend-app-plugin-experimental-docs
+    image: sujaykumarh/docsify:latest
+    expose:
+      - 3000
+    volumes:
+      - ./frontend/app-plugin-experimental/docs:/docs
+    command: serve
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.ember-nexus-frontend-app-plugin-experimental-docs.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.ember-nexus-frontend-app-plugin-experimental-docs.rule=Host(`docs.app-plugin-experimental.localhost`) || Host(`docs.app-plugin-experimental.${DOMAIN}`)'
+      - 'traefik.http.routers.ember-nexus-frontend-app-plugin-experimental-docs.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-frontend-app-plugin-experimental-docs.tls=true'
+      - 'traefik.http.routers.ember-nexus-frontend-app-plugin-experimental-docs.tls.certresolver=step-ca'
+
 # logging stuff
 
   ember-nexus-logging-dozzle:
@@ -168,7 +236,7 @@ services:
   # index application
 
   ember-nexus-index:
-    image: daledavies/jump
+    image: daledavies/jump:latest
     container_name: ember-nexus-index
     expose:
       - 8080
@@ -208,7 +276,7 @@ services:
       - --providers.docker.exposedByDefault=false
       - --api
       - --certificatesresolvers.step-ca.acme.storage=acme.json
-      - --certificatesresolvers.step-ca.acme.caserver=https://ember-nexus-proxy-step-ca:9000/acme/acme/directory
+      - --certificatesresolvers.step-ca.acme.caserver=https://proxy-step-ca:9000/acme/acme/directory
       - --certificatesresolvers.step-ca.acme.email=ember-nexus@localhost
       - --certificatesresolvers.step-ca.acme.certificatesDuration=24
       - --certificatesresolvers.step-ca.acme.tlschallenge=true
@@ -222,20 +290,28 @@ services:
       default:
         aliases:
           - api.localhost
+          - docs.api.localhost
           - neo4j.localhost
           - kibana.localhost
           - redisinsight.localhost
           - rabbitmq.localhost
           - minio.localhost
+          - docs.web-sdk.localhost
+          - docs.uix.localhost
+          - docs.app-plugin-experimental.localhost
           - proxy.localhost
           - logs.localhost
           - index.localhost
           - api.${DOMAIN}
+          - docs.api.${DOMAIN}
           - neo4j.${DOMAIN}
           - kibana.${DOMAIN}
           - redisinsight.${DOMAIN}
           - rabbitmq.${DOMAIN}
           - minio.${DOMAIN}
+          - docs.web-sdk.${DOMAIN}
+          - docs.uix.${DOMAIN}
+          - docs.app-plugin-experimental.${DOMAIN}
           - proxy.${DOMAIN}
           - logs.${DOMAIN}
           - index.${DOMAIN}
@@ -254,18 +330,18 @@ services:
       - 'traefik.http.routers.ember-nexus-proxy-traefik.entrypoints=websecure'
       - 'traefik.http.routers.ember-nexus-proxy-traefik.tls.certresolver=step-ca'
       # unknown domain http redirect
-      - 'traefik.http.routers.redirect-unknown-domain-http.rule=HostRegexp(`.*`)'
-      - 'traefik.http.routers.redirect-unknown-domain-http.entrypoints=web'
-      - 'traefik.http.routers.redirect-unknown-domain-http.middlewares=redirect-unknown-domain'
-      - 'traefik.http.routers.redirect-unknown-domain-http.service=noop@internal'
-      - 'traefik.http.routers.redirect-unknown-domain-http.priority=1'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-http.rule=HostRegexp(`.*`)'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-http.entrypoints=web'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-http.middlewares=redirect-unknown-domain'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-http.service=noop@internal'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-http.priority=1'
       # unknown domain https redirect
-      - 'traefik.http.routers.redirect-unknown-domain-https.rule=HostRegexp(`.*`)'
-      - 'traefik.http.routers.redirect-unknown-domain-https.entrypoints=websecure'
-      - 'traefik.http.routers.redirect-unknown-domain-https.tls=true'
-      - 'traefik.http.routers.redirect-unknown-domain-https.middlewares=redirect-unknown-domain'
-      - 'traefik.http.routers.redirect-unknown-domain-https.service=noop@internal'
-      - 'traefik.http.routers.redirect-unknown-domain-https.priority=1'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-https.rule=HostRegexp(`.*`)'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-https.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-https.tls=true'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-https.middlewares=redirect-unknown-domain'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-https.service=noop@internal'
+      - 'traefik.http.routers.ember-nexus-redirect-unknown-domain-https.priority=1'
       # middleware redirect
       - 'traefik.http.middlewares.redirect-unknown-domain.redirectregex.regex=.*'
       - 'traefik.http.middlewares.redirect-unknown-domain.redirectregex.replacement=https://index.localhost/'
@@ -274,10 +350,10 @@ services:
 
   ember-nexus-proxy-step-ca:
     container_name: ember-nexus-proxy-step-ca
-    image: smallstep/step-ca
+    image: smallstep/step-ca:latest
     volumes:
       - ./volumes/step-ca:/home/step
     environment:
       - DOCKER_STEPCA_INIT_NAME=EmberNexusLocalhost
-      - DOCKER_STEPCA_INIT_DNS_NAMES=localhost,ember-nexus-proxy-step-ca,$(hostname -f)
+      - DOCKER_STEPCA_INIT_DNS_NAMES=localhost,proxy-step-ca,$(hostname -f)
       - DOCKER_STEPCA_INIT_ACME=true

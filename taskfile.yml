@@ -5,6 +5,9 @@ env:
     - name: "api"
       github: ember-nexus/api
       location: "api/api"
+      cli:
+        shell: "bash"
+        container: "api"
     - name: "reference-dataset"
       github: ember-nexus/reference-dataset
       location: "api/reference-dataset"
@@ -35,12 +38,32 @@ tasks:
       - task --list
 
 
-  start:
+  up:
     desc: Start docker compose setup.
     silent: true
     cmd: |
       docker compose up -d
 
+  down:
+    desc: Stop docker compose setup.
+    silent: true
+    cmd: |
+      docker compose down
+
+  restart:
+    desc: Restart docker compose setup.
+    silent: true
+    cmds:
+      - task: down
+      - task: up
+
+  status:
+    desc: Stop docker compose setup.
+    silent: true
+    cmd: |
+      docker compose ps --format json | \
+      jq --slurp -r '(["Group", "Short Name", "Image", "Status"], (.[] | .Group = (.Service | split("-") | .[2]) | .ShortName = (.Service | split("-") | .[3:] | join("-") | if . == "" then "-" else . end) | [.Group, .ShortName, .Image, .Status])) | @csv' | \
+      duckdb -column -c "SELECT * FROM read_csv('/dev/stdin', all_varchar=true)"
 
   cli-test:
     desc: Cli test.
@@ -49,7 +72,13 @@ tasks:
       cd api/api
       cliTool=$(task cli-tool)
       echo "$cliTool"
-      
+
+  cli:
+    desc: Starts cli to container.
+    silent: true
+    interactive: true
+    cmd: |
+      docker exec -it ember-nexus-api-api bash
 
 
 
