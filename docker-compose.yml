@@ -167,8 +167,27 @@ services:
       - 'traefik.http.routers.ember-nexus-api-minio.tls=true'
       - 'traefik.http.routers.ember-nexus-api-minio.tls.certresolver=step-ca'
 
-# frontend stuff
+  # frontend stuff
 
+  ember-nexus-frontend-node:
+    container_name: ember-nexus-frontend-node
+    build:
+      context: ./docker/frontend
+    volumes:
+      - ./frontend:/srv
+    working_dir: /srv
+    tty: true
+    ports:
+      - 6006:6006
+#    expose:
+#      - 6006
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.ember-nexus-frontend-node-storybook.loadbalancer.server.port=6006'
+      - 'traefik.http.routers.ember-nexus-frontend-node-storybook.rule=Host(`storybook.frontend.localhost`) || Host(`storybook.frontend.${DOMAIN}`)'
+      - 'traefik.http.routers.ember-nexus-frontend-node-storybook.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-frontend-node-storybook.tls=true'
+      - 'traefik.http.routers.ember-nexus-frontend-node-storybook.tls.certresolver=step-ca'
 
   ember-nexus-frontend-web-sdk-docs:
     container_name: ember-nexus-frontend-web-sdk-docs
@@ -218,7 +237,7 @@ services:
       - 'traefik.http.routers.ember-nexus-frontend-app-plugin-experimental-docs.tls=true'
       - 'traefik.http.routers.ember-nexus-frontend-app-plugin-experimental-docs.tls.certresolver=step-ca'
 
-# logging stuff
+  # logging stuff
 
   ember-nexus-logging-dozzle:
     image: amir20/dozzle:latest
@@ -276,7 +295,7 @@ services:
       - --providers.docker.exposedByDefault=false
       - --api
       - --certificatesresolvers.step-ca.acme.storage=acme.json
-      - --certificatesresolvers.step-ca.acme.caserver=https://proxy-step-ca:9000/acme/acme/directory
+      - --certificatesresolvers.step-ca.acme.caserver=https://ember-nexus-proxy-step-ca:9000/acme/acme/directory
       - --certificatesresolvers.step-ca.acme.email=ember-nexus@localhost
       - --certificatesresolvers.step-ca.acme.certificatesDuration=24
       - --certificatesresolvers.step-ca.acme.tlschallenge=true
@@ -296,6 +315,7 @@ services:
           - redisinsight.localhost
           - rabbitmq.localhost
           - minio.localhost
+          - storybook.frontend.localhost
           - docs.web-sdk.localhost
           - docs.uix.localhost
           - docs.app-plugin-experimental.localhost
@@ -309,6 +329,7 @@ services:
           - redisinsight.${DOMAIN}
           - rabbitmq.${DOMAIN}
           - minio.${DOMAIN}
+          - storybook.frontend.${DOMAIN}
           - docs.web-sdk.${DOMAIN}
           - docs.uix.${DOMAIN}
           - docs.app-plugin-experimental.${DOMAIN}
@@ -351,6 +372,8 @@ services:
   ember-nexus-proxy-step-ca:
     container_name: ember-nexus-proxy-step-ca
     image: smallstep/step-ca:latest
+    expose:
+      - 9000
     volumes:
       - ./volumes/step-ca:/home/step
     environment:

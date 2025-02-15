@@ -11,6 +11,24 @@ env:
     - name: "reference-dataset"
       github: ember-nexus/reference-dataset
       location: "api/reference-dataset"
+    - name: "cypher-data-structures"
+      github: neo4j-php/cypher-data-structures
+      location: "api/cypher-data-structures"
+    - name: "cypher-entity-manager"
+      github: neo4j-php/cypher-entity-manager
+      location: "api/cypher-entity-manager"
+    - name: "elastic-data-structures"
+      github: Syndesi/elastic-data-structures
+      location: "api/elastic-data-structures"
+    - name: "elastic-entity-manager"
+      github: Syndesi/elastic-entity-manager
+      location: "api/elastic-entity-manager"
+    - name: "mongo-entity-manager"
+      github: Syndesi/mongo-entity-manager
+      location: "api/mongo-entity-manager"
+    - name: "mongo-data-structures"
+      github: Syndesi/mongo-data-structures
+      location: "api/mongo-data-structures"
     - name: "web-sdk"
       github: ember-nexus/web-sdk
       location: "frontend/web-sdk"
@@ -41,12 +59,14 @@ tasks:
   up:
     desc: Start docker compose setup.
     silent: true
+    interactive: true
     cmd: |
       docker compose up -d
 
   down:
     desc: Stop docker compose setup.
     silent: true
+    interactive: true
     cmd: |
       docker compose down
 
@@ -78,7 +98,59 @@ tasks:
     silent: true
     interactive: true
     cmd: |
-      docker exec -it ember-nexus-api-api bash
+      docker exec -it ember-nexus-api bash
+
+  api-test-feature:
+    desc: Runs feature tests inside the api container.
+    silent: true
+    cmd: |
+      docker exec -it ember-nexus-api composer test:feature
+
+  frontend-install:
+    desc: Installs dependencies for all frontend repositories.
+    silent: true
+    cmd: |
+      echo "Installing dependencies for web-sdk:"
+      docker exec -it ember-nexus-frontend-node bash -c "cd web-sdk && yarn install"
+      echo "Installing dependencies for uix:"
+      docker exec -it ember-nexus-frontend-node bash -c "cd uix && yarn install"
+      echo "Installing dependencies for app-plugin-experimental:"
+      docker exec -it ember-nexus-frontend-node bash -c "cd app-plugin-experimental && yarn install"
+      echo "Installing dependencies for app-web/pwa:"
+      docker exec -it ember-nexus-frontend-node bash -c "cd app-web/pwa && yarn install"
+
+  frontend-web-sdk-build:
+    desc: Builds the web-sdk package.
+    silent: true
+    cmd: |
+      docker exec -it ember-nexus-frontend-node bash -c "cd web-sdk && yarn build"
+
+  frontend-uix-build:
+    desc: Builds the uix package.
+    silent: true
+    cmd: |
+      docker exec -it ember-nexus-frontend-node bash -c "cd uix && yarn build"
+
+  frontend-app-plugin-experimental-build:
+    desc: Builds the app-plugin-experimental package.
+    silent: true
+    cmd: |
+      docker exec -it ember-nexus-frontend-node bash -c "cd app-plugin-experimental && yarn build"
+
+  frontend-app-web-pwa-build:
+    desc: Builds the app-web/pwa package.
+    silent: true
+    cmd: |
+      docker exec -it ember-nexus-frontend-node bash -c "cd app-web/pwa && yarn build"
+
+  frontend-build:
+    desc: Builds dependencies for all frontend repositories.
+    silent: true
+    deps:
+      - frontend-web-sdk-build
+      - frontend-uix-build
+      - frontend-app-plugin-experimental-build
+      - frontend-app-web-pwa-build
 
 
 
