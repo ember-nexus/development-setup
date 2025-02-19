@@ -157,6 +157,20 @@ tasks:
 
 
 
+  setup-neo4j-tls:
+    desc: Creates and configures Neo4j's TLS certificate.
+    silent: true
+    cmd: |
+      sudo chmod 777 ./volumes/neo4j-cert
+      docker exec -it ember-nexus-api-neo4j mkdir -p ./certificates/bolt/trusted
+      docker exec -it ember-nexus-api-neo4j cp /neo4j-cert/public.crt ./certificates/bolt
+      docker exec -it ember-nexus-api-neo4j cp /neo4j-cert/public.crt ./certificates/bolt/trusted
+      docker exec -it ember-nexus-api-neo4j cp /neo4j-cert/private.key ./certificates/bolt
+      docker exec -it ember-nexus-api-neo4j chmod 644 ./certificates/bolt/public.crt
+      docker exec -it ember-nexus-api-neo4j chmod 644 ./certificates/bolt/trusted/public.crt
+      docker exec -it ember-nexus-api-neo4j chmod 400 ./certificates/bolt/private.key
+      docker exec -it ember-nexus-api-neo4j chown neo4j:neo4j -R ./certificates/bolt
+
 
 
 

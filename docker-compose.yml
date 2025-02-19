@@ -10,6 +10,12 @@ services:
       target: development
     volumes:
       - ./api/api:/var/www/html
+      - ./api/cypher-data-structures:/var/www/cypher-data-structures
+      - ./api/cypher-entity-manager:/var/www/cypher-entity-manager
+      - ./api/elastic-data-structures:/var/www/elastic-data-structures
+      - ./api/elastic-entity-manager:/var/www/elastic-entity-manager
+      - ./api/mongo-data-structures:/var/www/mongo-data-structures
+      - ./api/mongo-entity-manager:/var/www/mongo-entity-manager
       - ./volumes/well-known-security.txt:/well-known-security.txt
       - ./volumes/api.env:/var/www/html/.env
       - ./volumes/api.env:/var/www/html/.env.test
@@ -47,6 +53,12 @@ services:
     expose:
       - 7474
       - 7687
+    ports:
+      - 7687:7687
+    volumes:
+      - ./volumes/neo4j-certificates-bolt:/var/lib/neo4j/certificates/bolt
+      - ./volumes/neo4j-cert:/neo4j-cert
+      - ./volumes/neo4j-conf:/var/lib/neo4j/conf
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.services.ember-nexus-api-neo4j.loadbalancer.server.port=7474'
@@ -54,13 +66,14 @@ services:
       - 'traefik.http.routers.ember-nexus-api-neo4j.entrypoints=websecure'
       - 'traefik.http.routers.ember-nexus-api-neo4j.tls=true'
       - 'traefik.http.routers.ember-nexus-api-neo4j.tls.certresolver=step-ca'
-      - 'traefik.http.routers.ember-nexus-api-neo4j.middlewares=cors'
-      - 'traefik.tcp.services.ember-nexus-api-neo4j-bolt.loadbalancer.server.port=7687'
-      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.rule=HostSNI(`neo4j.localhost`) || HostSNI(`neo4j.${DOMAIN}`)'
-      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.entrypoints=bolt'
-      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.service=ember-nexus-api-neo4j-bolt'
-      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.tls=true'
-      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.tls.certresolver=step-ca'
+      - 'traefik.http.routers.ember-nexus-api-neo4j.middlewares=cors-neo4j'
+      - 'traefik.http.middlewares.cors-neo4j.headers.customResponseHeaders.Access-Control-Allow-Origin=https://neo4j.localhost https://neo4j-bolt.localhost:7687'
+#      - 'traefik.tcp.services.ember-nexus-api-neo4j-bolt.loadbalancer.server.port=7687'
+#      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.rule=HostSNI(`neo4j-bolt.localhost`) || HostSNI(`neo4j-bolt.${DOMAIN}`)'
+#      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.entrypoints=bolt'
+#      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.service=ember-nexus-api-neo4j-bolt'
+#      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.tls=true'
+#      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.tls.passthrough=true'
 
   ember-nexus-api-mongodb:
     container_name: ember-nexus-api-mongodb
@@ -303,7 +316,7 @@ services:
     ports:
       - '80:80'
       - '443:443'
-      - '7687:7687'
+#      - '7687:7687'
       - '27017:27017'
     networks:
       default:
@@ -366,8 +379,6 @@ services:
       # middleware redirect
       - 'traefik.http.middlewares.redirect-unknown-domain.redirectregex.regex=.*'
       - 'traefik.http.middlewares.redirect-unknown-domain.redirectregex.replacement=https://index.localhost/'
-      # middleware cors
-      - 'traefik.http.middlewares.cors.headers.customResponseHeaders.Access-Control-Allow-Origin=*'
 
   ember-nexus-proxy-step-ca:
     container_name: ember-nexus-proxy-step-ca
@@ -376,6 +387,7 @@ services:
       - 9000
     volumes:
       - ./volumes/step-ca:/home/step
+      - ./volumes/neo4j-cert:/neo4j-cert
     environment:
       - DOCKER_STEPCA_INIT_NAME=EmberNexusLocalhost
       - DOCKER_STEPCA_INIT_DNS_NAMES=localhost,proxy-step-ca,$(hostname -f)
