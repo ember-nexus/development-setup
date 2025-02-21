@@ -53,12 +53,6 @@ services:
     expose:
       - 7474
       - 7687
-#    ports:
-#      - 7687:7687
-#    volumes:
-#      - ./volumes/neo4j-certificates-bolt:/var/lib/neo4j/certificates/bolt
-#      - ./volumes/neo4j-cert:/neo4j-cert
-#      - ./volumes/neo4j-conf:/var/lib/neo4j/conf
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.services.ember-nexus-api-neo4j.loadbalancer.server.port=7474'
@@ -69,7 +63,6 @@ services:
       - 'traefik.http.routers.ember-nexus-api-neo4j.tls.certresolver=step-ca'
       - 'traefik.http.routers.ember-nexus-api-neo4j.middlewares=cors-neo4j'
       - 'traefik.http.middlewares.cors-neo4j.headers.customResponseHeaders.Access-Control-Allow-Origin=https://neo4j.localhost https://neo4j-bolt.localhost:7687'
-
       - 'traefik.http.services.ember-nexus-api-neo4j-bolt.loadbalancer.server.port=7687'
       - 'traefik.http.routers.ember-nexus-api-neo4j-bolt.service=ember-nexus-api-neo4j-bolt'
       - 'traefik.http.routers.ember-nexus-api-neo4j-bolt.rule=Host(`neo4j-bolt.localhost`) || Host(`neo4j-bolt.${DOMAIN}`)'
@@ -77,14 +70,22 @@ services:
       - 'traefik.http.routers.ember-nexus-api-neo4j-bolt.tls=true'
       - 'traefik.http.routers.ember-nexus-api-neo4j-bolt.tls.certresolver=step-ca'
 
-
-#      - 'traefik.tcp.services.ember-nexus-api-neo4j-bolt.loadbalancer.server.port=7687'
-##      - 'traefik.tcp.services.ember-nexus-api-neo4j-bolt.loadbalancer.serverstransports.insecureskipverify=true'
-#      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.rule=HostSNI(`neo4j-bolt.localhost`) || HostSNI(`neo4j-bolt.${DOMAIN}`)'
-#      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.entrypoints=bolt'
-#      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.service=ember-nexus-api-neo4j-bolt'
-#      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.tls=true'
-##      - 'traefik.tcp.routers.ember-nexus-api-neo4j-bolt.tls.passthrough=true'
+  ember-nexus-api-falkordb:
+    container_name: ember-nexus-api-falkordb
+    image: falkordb/falkordb:edge
+    environment:
+      - REDIS_ARGS=--requirepass falkordb --port 6380
+    expose:
+      - 3000
+      - 6380
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.services.ember-nexus-api-falkordb.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.ember-nexus-api-falkordb.service=ember-nexus-api-falkordb'
+      - 'traefik.http.routers.ember-nexus-api-falkordb.rule=Host(`falkordb.localhost`) || Host(`falkordb.${DOMAIN}`)'
+      - 'traefik.http.routers.ember-nexus-api-falkordb.entrypoints=websecure'
+      - 'traefik.http.routers.ember-nexus-api-falkordb.tls=true'
+      - 'traefik.http.routers.ember-nexus-api-falkordb.tls.certresolver=step-ca'
 
   ember-nexus-api-mongodb:
     container_name: ember-nexus-api-mongodb
@@ -169,7 +170,6 @@ services:
       - 'traefik.http.routers.ember-nexus-api-rabbitmq.entrypoints=websecure'
       - 'traefik.http.routers.ember-nexus-api-rabbitmq.tls=true'
       - 'traefik.http.routers.ember-nexus-api-rabbitmq.tls.certresolver=step-ca'
-
 
   ember-nexus-api-minio:
     container_name: ember-nexus-api-minio
@@ -324,7 +324,6 @@ services:
       - --certificatesresolvers.step-ca.acme.certificatesDuration=24
       - --certificatesresolvers.step-ca.acme.tlschallenge=true
       - --certificatesresolvers.step-ca.acme.caCertificates=/certs/root_ca.crt
-      - --serversTransport.insecureSkipVerify=true
     ports:
       - '80:80'
       - '443:443'
@@ -337,6 +336,7 @@ services:
           - docs.api.localhost
           - neo4j.localhost
           - neo4j-bolt.localhost
+          - falkordb.localhost
           - kibana.localhost
           - redisinsight.localhost
           - rabbitmq.localhost
@@ -352,6 +352,7 @@ services:
           - docs.api.${DOMAIN}
           - neo4j.${DOMAIN}
           - neo4j-bolt.${DOMAIN}
+          - falkordb.${DOMAIN}
           - kibana.${DOMAIN}
           - redisinsight.${DOMAIN}
           - rabbitmq.${DOMAIN}

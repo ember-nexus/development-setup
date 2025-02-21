@@ -73,6 +73,11 @@
       "icon": "neo4j.png"
     },
     {
+      "name": "FalkorDB",
+      "url" : "https://falkordb.localhost",
+      "icon": "falkordb.png"
+    },
+    {
       "name": "MinIO",
       "url" : "https://minio.localhost",
       "icon": "minio.png"
