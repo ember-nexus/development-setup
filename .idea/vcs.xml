@@ -10,6 +10,7 @@
     <mapping directory="$PROJECT_DIR$/api/mongo-data-structures" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/api/mongo-entity-manager" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/api/reference-dataset" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/frontend/app-core" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/frontend/app-plugin-experimental" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/frontend/app-web" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/frontend/registry" vcs="Git" />

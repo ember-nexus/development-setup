@@ -1,0 +1,88 @@
+services:
+
+  api-api:
+    container_name: api-api
+    image: api:local-prod
+    ports:
+      - 8000:80
+    environment:
+      - APP_ENV=prod
+      - CYPHER_AUTH=bolt://neo4j:ouze4iew2xuVei7i@api-neo4j
+      - MONGO_AUTH=mongodb://mongo:aiTaefieyaimie5o@api-mongodb:27017
+      - S3_AUTH=currently-not-used
+      - ELASTIC_AUTH=api-elasticsearch:9200
+      - REDIS_AUTH=tcp://api-redis?password=ae0iehooCh2eeyi6
+      - RABBITMQ_AUTH=amqp://rabbitmq:eJaeQueiTop5ciec@api-rabbitmq:5672
+    networks:
+      - api
+
+  api-neo4j:
+    container_name: api-neo4j
+    image: neo4j:5.26
+    expose:
+      - 7474
+      - 7687
+    environment:
+      - NEO4J_AUTH=neo4j/ouze4iew2xuVei7i
+    networks:
+      - api
+
+  api-mongodb:
+    container_name: api-mongodb
+    image: mongo:7
+    expose:
+      - 27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo
+      - MONGO_INITDB_ROOT_PASSWORD=aiTaefieyaimie5o
+    networks:
+      - api
+
+  api-elasticsearch:
+    container_name: api-elasticsearch
+    image: elasticsearch:8.17.2
+    expose:
+      - 9200
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=true
+    networks:
+      - api
+
+  api-redis:
+    container_name: api-redis
+    image: redis:7-alpine
+    expose:
+      - 6379
+    command: redis-server --save 20 1 --loglevel warning --requirepass ae0iehooCh2eeyi6
+    networks:
+      - api
+
+  api-rabbitmq:
+    container_name: api-rabbitmq
+    image: rabbitmq:3-management
+    expose:
+      - 5672
+      - 15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbitmq
+      - RABBITMQ_DEFAULT_PASS=eJaeQueiTop5ciec
+    networks:
+      - api
+
+  api-minio:
+    container_name: api-minio
+    image: quay.io/minio/minio
+    environment:
+      MINIO_ROOT_USER: "ROOTNAME"
+      MINIO_ROOT_PASSWORD: "CHANGEME123"
+    expose:
+      - 9000
+      - 9090
+    command: server /data --console-address ":9090"
+    networks:
+      - api
+
+networks:
+  api:

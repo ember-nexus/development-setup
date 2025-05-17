@@ -100,6 +100,13 @@ tasks:
     cmd: |
       docker exec -it ember-nexus-api bash
 
+  cli-frontend:
+    desc: Starts cli to container.
+    silent: true
+    interactive: true
+    cmd: |
+      docker exec -it ember-nexus-frontend-node bash
+
   api-test-feature:
     desc: Runs feature tests inside the api container.
     silent: true
