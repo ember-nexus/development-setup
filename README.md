@@ -3,14 +3,37 @@
 Important: The development setup requires multiple Docker containers, some of which require quite a lot of memory.  
 Therefore the host system should have at least **16 GB of memory**.
 
-The following steps are required to start the development environment:
+## Install dependencies
+
+- [Task](https://taskfile.dev/installation/)
+- [Docker CLI + Docker Compose](https://docs.docker.com/engine/install/)
+- [DuckDB](https://duckdb.org/docs/installation/), required for some commands
+
+## Setup environment
 
 ```bash
 task setup
-task up
+cp ./api/api/.env ./volumes/api.env # edit env, todo
+mkdir -p ./volumes/step-ca
+chmod 777 ./volumes/step-ca
 ```
 
-### old readme, wip, incomplete
+## Start environment
+
+```bash
+task up
+# todo: step ca tls installation
+
+# enter API container:
+task cli
+# inside of the API container:
+composer install
+./bin/test-feature-prepare
+```
+
+Index page is now available under [https://index.localhost](https://index.localhost).
+
+## old readme, wip, incomplete
 
 ```bash
 docker exec -it ember-nexus-proxy-step-ca bash

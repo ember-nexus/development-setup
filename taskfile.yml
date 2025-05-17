@@ -41,6 +41,7 @@ env:
     - name: "app-web"
       github: ember-nexus/app-web
       location: "frontend/app-web"
+    # todo: add app-core
     - name: "governance"
       github: ember-nexus/governance
       location: "other/governance"
