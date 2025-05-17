@@ -2,21 +2,5 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/api/api" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/api/cypher-data-structures" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/api/cypher-entity-manager" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/api/elastic-data-structures" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/api/elastic-entity-manager" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/api/mongo-data-structures" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/api/mongo-entity-manager" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/api/reference-dataset" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/frontend/app-core" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/frontend/app-plugin-experimental" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/frontend/app-web" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/frontend/registry" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/frontend/uix" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/frontend/web-sdk" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/other/governance" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/python/python-sdk" vcs="Git" />
   </component>
 </project>

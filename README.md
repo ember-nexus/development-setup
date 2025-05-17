@@ -1,6 +1,16 @@
 # Development Setup
 
-WIP
+Important: The development setup requires multiple Docker containers, some of which require quite a lot of memory.  
+Therefore the host system should have at least **16 GB of memory**.
+
+The following steps are required to start the development environment:
+
+```bash
+task setup
+task up
+```
+
+### old readme, wip, incomplete
 
 ```bash
 docker exec -it ember-nexus-proxy-step-ca bash
